@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime & Lo-Fi Chill Sanctuary 🌸</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap');
+        body { font-family: 'Tajawal', sans-serif; background: linear-gradient(135deg, #1a1c29 0%, #2c163a 100%); color: #fff; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Main Container -->
+    <div class="glass shadow-2xl rounded-3xl p-6 w-full max-w-2xl">
+        
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+            <div>
+                <h1 class="text-2xl font-black text-pink-400">✨ Anime & Lo-Fi Sanctuary</h1>
+                <p class="text-xs text-gray-400 mt-1">مساحتك الخاصة للاسترخاء، البرمجة، والتركيز</p>
+            </div>
+            <div id="clock" class="text-lg font-bold text-purple-300 glass px-4 py-2 rounded-xl">00:00:00</div>
+        </div>
+
+        <!-- Grid Sections -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Left: Anime Quote Generator (API Integration) -->
+            <div class="glass rounded-2xl p-4 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-sm font-bold text-pink-300 mb-2">💬 حكمة اليوم من عالم الأنمي</h2>
+                    <p id="quoteText" class="text-sm italic text-gray-200 min-h-[60px]">"جاري جلب إلهام الأنمي..."</p>
+                    <span id="animeTitle" class="text-xs text-purple-400 block mt-2 font-semibold"></span>
+                </div>
+                <button onclick="fetchAnimeQuote()" class="mt-4 bg-pink-600 hover:bg-pink-700 text-white py-2 px-4 rounded-xl text-xs transition font-bold shadow-lg shadow-pink-600/30">
+                    الحصول على مقولة أخرى 🔄
+                </button>
+            </div>
+
+            <!-- Right: Pomodoro & Focus Timer -->
+            <div class="glass rounded-2xl p-4 text-center flex flex-col justify-between">
+                <div>
+                    <h2 class="text-sm font-bold text-purple-300 mb-1">⏳ مؤقت التركيز (Pomodoro)</h2>
+                    <span id="timer" class="text-4xl font-black text-white tracking-widest my-2 block">25:00</span>
+                </div>
+                <div class="flex justify-center gap-2 mt-2">
+                    <button onclick="toggleTimer()" id="timerBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-purple-600/30">إبدأ</button>
+                    <button onclick="resetTimer()" class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-xl text-xs transition">إعادة</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Bottom: Interactive Tasks / Notes -->
+        <div class="mt-6 glass rounded-2xl p-4">
+            <h2 class="text-sm font-bold text-gray-200 mb-3">🎯 مهام البرمجة والتعلم اليومية</h2>
+            <div class="flex gap-2 mb-3">
+                <input type="text" id="taskInput" placeholder="أضيفي مهمة جديدة (مثال: دراسة Algorithms)..." class="flex-1 bg-black/30 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-pink-500 text-white placeholder-gray-500">
+                <button onclick="addTask()" class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-xl text-sm transition font-bold">إضافة</button>
+            </div>
+            <ul id="taskList" class="space-y-2 max-h-36 overflow-y-auto">
+                <!-- Dynamically Added Tasks -->
+            </ul>
+        </div>
+
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Live Clock
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', { hour12: false });
+        }, 1000);
+
+        // Anime Quote API Integration
+        async function fetchAnimeQuote() {
+            const quoteEl = document.getElementById('quoteText');
+            const animeEl = document.getElementById('animeTitle');
+            quoteEl.textContent = "جاري البحث...";
+            animeEl.textContent = "";
+            try {
+                const res = await fetch('https://animechan.io/api/v1/quotes/random');
+                const data = await res.json();
+                quoteEl.textContent = `"${data.data.content}"`;
+                animeEl.textContent = `— ${data.data.character} (${data.data.anime.name})`;
+            } catch (error) {
+                quoteEl.textContent = `"لا توجد طاقة سلبية تستطيع إيقاف شغفك بالبرمجة!"`;
+                animeEl.textContent = "— عقل دوت كوم (وضع الأوفلاين)";
+            }
+        }
+        fetchAnimeQuote();
+
+        // Pomodoro Logic
+        let timeLeft = 1500;
+        let timerId = null;
+        let isRunning = false;
+
+        function updateTimerDisplay() {
+            let m = Math.floor(timeLeft / 60);
+            let s = timeLeft % 60;
+            document.getElementById('timer').textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('timerBtn');
+            if (!isRunning) {
+                isRunning = true;
+                btn.textContent = "إيقاف مؤقت";
+                btn.className = "bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-lg";
+                timerId = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerId);
+                        alert("انتهى وقت التركيز! خدي استراحة ممتعة 🌸");
+                        resetTimer();
+                    }
+                }, 1000);
+            } else {
+                clearInterval(timerId);
+                isRunning = false;
+                btn.textContent = "إبدأ";
+                btn.className = "bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-lg";
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerId);
+            isRunning = false;
+            timeLeft = 1500;
+            updateTimerDisplay();
+            document.getElementById('timerBtn').textContent = "إبدأ";
+        }
+
+        // Task List with LocalStorage
+        function loadTasks() {
+            const tasks = JSON.parse(localStorage.getItem('anime_tasks')) || [];
+            const list = document.getElementById('taskList');
+            list.innerHTML = '';
+            tasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                li.className = "flex items-center justify-between bg-black/20 p-2.5 rounded-xl border border-white/5 text-sm";
+                li.innerHTML = `
+                    <span class="${task.completed ? 'line-through text-gray-500' : 'text-gray-200'} cursor-pointer flex-1" onclick="toggleTask(${index})">${task.text}</span>
+                    <button onclick="deleteTask(${index})" class="text-red-400 hover:text-red-600 text-xs px-2">حذف</button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const text = input.value.trim();
+            if(!text) return;
+            const tasks = JSON.parse(localStorage.getItem('anime_tasks')) || [];
+            tasks.push({ text, completed: false });
+            localStorage.setItem('anime_tasks', JSON.stringify(tasks));
+            input.value = '';
+            loadTasks();
+        }
+
+        function toggleTask(index) {
+            const tasks = JSON.parse(localStorage.getItem('anime_tasks')) || [];
+            tasks[index].completed = !tasks[index].completed;
+            localStorage.setItem('anime_tasks', JSON.stringify(tasks));
+            loadTasks();
+        }
+
+        function deleteTask(index) {
+            const tasks = JSON.parse(localStorage.getItem('anime_tasks')) || [];
+            tasks.splice(index, 1);
+            localStorage.setItem('anime_tasks', JSON.stringify(tasks));
+            loadTasks();
+        }
+
+        loadTasks();
+    </script>
+</body>
+</html>
